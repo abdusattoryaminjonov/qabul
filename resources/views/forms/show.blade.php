@@ -88,8 +88,6 @@
             </button>
         </div>
     </form>
-
-    <p class="public-form-footer">{{ __('app.common.powered_by') }}</p>
 </div>
 
 @if($form->show_progress_bar)
