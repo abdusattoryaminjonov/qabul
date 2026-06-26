@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Form;
 use App\Models\FormResponse;
+use App\Models\ResponseAnswer;
 use App\Services\ResponseExportService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ResponseController extends Controller
@@ -38,7 +40,12 @@ class ResponseController extends Controller
         $form->load('questions');
         $responses = $form->responses()->with('answers')->latest('submitted_at')->paginate(20);
 
-        return view('admin.responses.index', compact('form', 'responses'));
+        $previewQuestions = $form->questions
+            ->sortBy(fn ($q) => $q->type === 'file' ? 0 : 1)
+            ->values()
+            ->take(5);
+
+        return view('admin.responses.index', compact('form', 'responses', 'previewQuestions'));
     }
 
     public function show(Form $form, FormResponse $response)
@@ -50,6 +57,25 @@ class ResponseController extends Controller
         $form->load('questions.options');
 
         return view('admin.responses.show', compact('form', 'response'));
+    }
+
+    public function viewFile(Form $form, FormResponse $response, ResponseAnswer $answer)
+    {
+        $this->authorize('viewResponses', $form);
+        abort_unless($response->form_id === $form->id, 404);
+        abort_unless($answer->response_id === $response->id, 404);
+        abort_unless($answer->file_path, 404);
+
+        $disk = $answer->storageDisk();
+        abort_unless($disk, 404);
+
+        $path = Storage::disk($disk)->path($answer->file_path);
+        $mime = Storage::disk($disk)->mimeType($answer->file_path) ?: 'application/octet-stream';
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="'.basename($answer->file_path).'"',
+        ]);
     }
 
     public function analytics(Form $form)

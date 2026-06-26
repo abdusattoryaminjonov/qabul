@@ -6,8 +6,10 @@ use App\Models\Form;
 use App\Models\FormResponse;
 use App\Models\ResponseAnswer;
 use App\Services\PsychologyScoringService;
+use App\Support\FormSubmissionRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class PublicFormController extends Controller
 {
@@ -68,27 +70,13 @@ class PublicFormController extends Controller
             return back()->with('error', __('app.public.already_submitted'));
         }
 
-        $rules = [];
-        if ($form->collect_email) {
-            $rules['respondent_email'] = ['required', 'email'];
-        }
+        $rules = FormSubmissionRules::forForm($form, $form->collect_email);
 
-        foreach ($form->questions as $question) {
-            $key = 'answers.'.$question->id;
-            if ($question->is_required) {
-                if ($question->type === 'file') {
-                    $rules[$key] = ['required', 'file', 'max:10240'];
-                } elseif ($question->type === 'checkbox') {
-                    $rules[$key] = ['required', 'array', 'min:1'];
-                } else {
-                    $rules[$key] = ['required'];
-                }
-            } elseif ($question->type === 'file') {
-                $rules[$key] = ['nullable', 'file', 'max:10240'];
-            }
-        }
-
-        $validated = $request->validate($rules);
+        $validated = $request->validate(
+            $rules,
+            [],
+            FormSubmissionRules::attributeNames($form)
+        );
 
         $score = 0;
         $maxScore = 0;
@@ -132,7 +120,7 @@ class PublicFormController extends Controller
             ];
 
             if ($question->type === 'file' && $request->hasFile($answerKey)) {
-                $path = $request->file($answerKey)->store('form-uploads/'.$form->id, 'public');
+                $path = $request->file($answerKey)->store('form-uploads/'.$form->id, 'local');
                 $answerData['file_path'] = $path;
             } elseif ($question->type === 'checkbox' && is_array($value)) {
                 $answerData['answer_json'] = $value;
@@ -173,11 +161,15 @@ class PublicFormController extends Controller
         }
 
         if ($form->isPsychologyTest()) {
-            $redirect->with('response_id', $response->id);
+            $redirect->with('psychology_response', [
+                'form_id' => $form->id,
+                'response_id' => $response->id,
+                'expires_at' => now()->addMinutes(30)->timestamp,
+            ]);
         }
 
         if ($form->limit_one_response) {
-            $redirect->cookie('form_submitted_'.$form->id, '1', 60 * 24 * 365);
+            $redirect->cookie($this->submissionCookie($request, $form->id));
         }
 
         return $redirect;
@@ -190,10 +182,15 @@ class PublicFormController extends Controller
         $response = null;
         $answerRows = [];
 
-        if ($form->isPsychologyTest() && session('response_id')) {
+        $psychologyAccess = session('psychology_response');
+
+        if ($form->isPsychologyTest()
+            && is_array($psychologyAccess)
+            && ($psychologyAccess['form_id'] ?? null) === $form->id
+            && ($psychologyAccess['expires_at'] ?? 0) >= now()->timestamp) {
             $response = FormResponse::with(['answers.question.options'])
                 ->where('form_id', $form->id)
-                ->find(session('response_id'));
+                ->find($psychologyAccess['response_id'] ?? null);
 
             if ($response) {
                 $breakdown = collect($response->result_data['breakdown'] ?? [])
@@ -247,5 +244,20 @@ class PublicFormController extends Controller
         $option = $question->options->firstWhere('text', (string) $storedText);
 
         return $option?->localizedText() ?: (string) $storedText;
+    }
+
+    private function submissionCookie(Request $request, int $formId): SymfonyCookie
+    {
+        return Cookie::make(
+            'form_submitted_'.$formId,
+            '1',
+            60 * 24 * 365,
+            '/',
+            null,
+            $request->isSecure(),
+            true,
+            false,
+            SymfonyCookie::SAMESITE_LAX
+        );
     }
 }

@@ -8,9 +8,11 @@
     @stack('head')
 </head>
 <body class="form-page-bg">
-    <div class="public-topbar">
-        <x-locale-theme :show-theme="false" />
+    <div class="public-page">
+        <div class="public-page-locale">
+            <x-locale-theme :show-theme="false" />
+        </div>
+        @yield('body')
     </div>
-    @yield('body')
 </body>
 </html>

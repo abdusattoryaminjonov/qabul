@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\PublicFormController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->middleware('throttle:30,1')->name('locale.switch');
 
 Route::get('/s/{code}', [PublicFormController::class, 'shortRedirect'])->name('forms.short');
 
@@ -78,6 +78,7 @@ Route::name('admin.')->group(function () {
         Route::get('/manage/{form}/responses/export', [ResponseController::class, 'export'])->name('responses.export');
         Route::get('/manage/{form}/analytics', [ResponseController::class, 'analytics'])->name('responses.analytics');
         Route::get('/manage/{form}/responses/{response}', [ResponseController::class, 'show'])->name('responses.show');
+        Route::get('/manage/{form}/responses/{response}/files/{answer}', [ResponseController::class, 'viewFile'])->name('responses.files.view');
         Route::delete('/manage/{form}/responses/{response}', [ResponseController::class, 'destroy'])->name('responses.destroy');
     });
 });

@@ -9,7 +9,11 @@ class ResponseExportService
 {
     public static function headers(Form $form): array
     {
-        $headers = ['#', __('app.common.date'), __('app.common.email')];
+        $headers = ['#', __('app.common.date')];
+
+        if ($form->collect_email) {
+            $headers[] = __('app.common.email');
+        }
 
         foreach ($form->questions as $question) {
             $headers[] = $question->title;
@@ -29,12 +33,15 @@ class ResponseExportService
         $row = [
             $index,
             $response->submitted_at->format('d.m.Y H:i'),
-            $response->respondent_email ?? '',
         ];
+
+        if ($form->collect_email) {
+            $row[] = $response->respondent_email ?? '';
+        }
 
         foreach ($form->questions as $question) {
             $answer = $response->answers->firstWhere('question_id', $question->id);
-            $row[] = $answer ? $answer->displayValue() : '';
+            $row[] = $answer ? $answer->exportValue($form, $response) : '';
         }
 
         if ($form->isQuiz()) {

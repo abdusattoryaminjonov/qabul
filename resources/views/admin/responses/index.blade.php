@@ -34,34 +34,36 @@
             <table class="responses-table text-sm">
                 <thead><tr>
                     <th class="col-num">#</th>
-                    <th class="col-date">{{ __('app.common.date') }}</th>
-                    @if($form->collect_email)<th class="col-email">{{ __('app.common.email') }}</th>@endif
-                    @foreach($form->questions as $question)
-                    <th class="col-question" title="{{ $question->title }}">{{ Str::limit($question->title, 30) }}</th>
+                    @foreach($previewQuestions as $question)
+                    <th class="col-question" title="{{ $question->title }}">{{ Str::limit($question->title, 28) }}</th>
                     @endforeach
                     @if($form->isQuiz() || $form->isPsychologyTest())<th class="col-score">{{ __('app.common.points') }}</th>@endif
+                    <th class="col-date">{{ __('app.common.date') }}</th>
                     <th class="col-actions text-right">{{ __('app.common.actions') }}</th>
                 </tr></thead>
                 <tbody>
                     @foreach($responses as $i => $response)
                     <tr>
                         <td class="col-num font-medium">{{ ($responses->currentPage() - 1) * $responses->perPage() + $i + 1 }}</td>
-                        <td class="col-date text-fc-muted">{{ $response->submitted_at->format('d.m.Y H:i') }}</td>
-                        @if($form->collect_email)<td class="col-email">{{ $response->respondent_email ?? '—' }}</td>@endif
-                        @foreach($form->questions as $question)
-                        @php
-                            $answer = $response->answers->firstWhere('question_id', $question->id);
-                            $answerText = $answer?->displayValue() ?: '';
-                        @endphp
-                        <td class="col-answer" title="{{ $answerText }}">{{ $answerText ? Str::limit($answerText, 50) : '—' }}</td>
+                        @foreach($previewQuestions as $question)
+                        @php $answer = $response->answers->firstWhere('question_id', $question->id); @endphp
+                        <td class="col-answer">
+                            @include('admin.responses.partials.answer-cell', [
+                                'form' => $form,
+                                'response' => $response,
+                                'answer' => $answer,
+                                'compact' => true,
+                            ])
+                        </td>
                         @endforeach
                         @if($form->isQuiz())
                         <td class="col-score"><span class="badge badge-brand">{{ $response->score }}/{{ $response->max_score }}</span></td>
                         @elseif($form->isPsychologyTest())
                         <td class="col-score"><span class="badge badge-brand">{{ $response->score }}</span></td>
                         @endif
+                        <td class="col-date text-fc-muted whitespace-nowrap">{{ $response->submitted_at->format('d.m.Y H:i') }}</td>
                         <td class="col-actions text-right">
-                            <a href="{{ route('admin.responses.show', [$form, $response]) }}" class="action-icon" data-tooltip="{{ __('app.responses.view') }}" aria-label="{{ __('app.responses.view') }}">
+                            <a href="{{ route('admin.responses.show', [$form, $response]) }}" class="action-icon" data-tooltip="{{ __('app.responses.view_all') }}" aria-label="{{ __('app.responses.view_all') }}">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </a>
                             @can('deleteResponses', $form)

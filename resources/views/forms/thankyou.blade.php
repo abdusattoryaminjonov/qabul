@@ -7,7 +7,7 @@
 @endpush
 
 @section('body')
-<div class="public-form {{ $form->isPsychologyTest() && $response ? 'max-w-2xl' : 'max-w-md' }} w-full mx-auto px-4 py-8">
+<div class="public-shell-wrap {{ $form->isPsychologyTest() && $response ? '' : 'public-shell-wrap-narrow' }}">
     <div class="public-result-card text-center">
         <div class="public-result-icon">
             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>

@@ -12,11 +12,13 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = session('locale', config('app.locale'));
+        $locale = session('locale', config('app.locale', 'uz'));
 
-        if (in_array($locale, self::LOCALES, true)) {
-            app()->setLocale($locale);
+        if (! in_array($locale, self::LOCALES, true)) {
+            $locale = 'uz';
         }
+
+        app()->setLocale($locale);
 
         return $next($request);
     }

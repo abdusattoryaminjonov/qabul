@@ -3,7 +3,7 @@
 @section('title', __('app.responses.detail', ['id' => $response->id]))
 
 @section('content')
-<div class="p-6 lg:p-10 max-w-3xl mx-auto">
+<div class="p-6 lg:p-10 max-w-6xl mx-auto">
     <a href="{{ route('admin.responses.index', $form) }}" class="inline-flex items-center gap-1.5 text-sm text-fc-muted hover:text-violet-600 font-medium mb-6">← {{ __('app.responses.back') }}</a>
     <div class="card overflow-hidden">
         <div class="p-6 lg:p-8 border-b border-[var(--fc-border)] flex justify-between items-start gap-4 bg-violet-500/5">
@@ -27,21 +27,17 @@
             </div>
             @endif
         </div>
-        <div class="p-6 lg:p-8 space-y-6">
+        <div class="p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6 response-answers-grid">
             @foreach($form->questions as $question)
             @php $answer = $response->answers->firstWhere('question_id', $question->id); @endphp
             <div>
                 <div class="text-sm font-semibold text-fc mb-2">{{ $question->title }}</div>
                 <div class="bg-[var(--fc-hover)] rounded-xl px-4 py-3.5 text-fc text-sm border border-[var(--fc-border)]">
-                    @if($answer)
-                        @if($answer->file_path)
-                            <a href="{{ asset('storage/'.$answer->file_path) }}" target="_blank" class="text-violet-600 font-medium hover:underline">{{ basename($answer->file_path) }}</a>
-                        @else
-                            {{ $answer->displayValue() ?: '—' }}
-                        @endif
-                    @else
-                        <span class="text-fc-muted italic">{{ __('app.responses.no_answer') }}</span>
-                    @endif
+                    @include('admin.responses.partials.answer-display', [
+                        'form' => $form,
+                        'response' => $response,
+                        'answer' => $answer,
+                    ])
                 </div>
             </div>
             @endforeach
