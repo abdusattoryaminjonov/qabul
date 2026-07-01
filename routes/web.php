@@ -69,6 +69,7 @@ Route::name('admin.')->group(function () {
         Route::post('/manage', [FormController::class, 'store'])->name('forms.store');
         Route::get('/manage/{form}/edit', [FormController::class, 'edit'])->name('forms.edit');
         Route::put('/manage/{form}', [FormController::class, 'update'])->name('forms.update');
+        Route::patch('/manage/{form}/status', [FormController::class, 'toggleStatus'])->name('forms.toggle-status');
         Route::delete('/manage/{form}', [FormController::class, 'destroy'])->name('forms.destroy');
         Route::post('/manage/{form}/duplicate', [FormController::class, 'duplicate'])->name('forms.duplicate');
         Route::post('/manage/{form}/short-link', [FormController::class, 'generateShortLink'])->name('forms.short-link');

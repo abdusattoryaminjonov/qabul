@@ -10,20 +10,28 @@
         'qrError' => __('app.builder.qr_error'),
     ];
 @endphp
-<div class="p-6 lg:p-10" x-data='formShareModal(@json($shareI18n))'>
-    <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
-        <div>
-            <p class="text-sm font-medium text-violet-600 mb-1">{{ __('app.nav.admin_panel') }}</p>
-            <h1 class="text-2xl lg:text-3xl font-bold text-fc">{{ __('app.dashboard.greeting', ['name' => auth()->user()->name]) }}</h1>
-            <p class="text-fc-muted mt-1">{{ __('app.dashboard.subtitle') }}</p>
+<div class="admin-page" x-data='formShareModal(@json($shareI18n))'>
+    <div class="admin-panel-card mb-6">
+        <div class="admin-panel-head">
+            <div class="admin-panel-head-left">
+                <div class="admin-panel-icon" aria-hidden="true">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                </div>
+                <div>
+                    <h1 class="admin-panel-title">{{ __('app.dashboard.greeting', ['name' => auth()->user()->name]) }}</h1>
+                    <p class="admin-panel-count">{{ __('app.dashboard.subtitle') }}</p>
+                </div>
+            </div>
+            <div class="admin-panel-head-right">
+                <a href="{{ route('admin.forms.create') }}" class="btn btn-primary btn-create">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    {{ __('app.dashboard.new_form') }}
+                </a>
+            </div>
         </div>
-        <a href="{{ route('admin.forms.create') }}" class="btn btn-primary">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            {{ __('app.dashboard.new_form') }}
-        </a>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 {{ isset($stats['total_users']) ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }} gap-4 mb-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 {{ isset($stats['total_users']) ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }} gap-4 mb-6">
         <div class="stat-card stat-card-violet">
             <div class="stat-card-blob"></div>
             <div class="stat-card-body">

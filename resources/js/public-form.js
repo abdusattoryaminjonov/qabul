@@ -44,7 +44,7 @@ function updateErrorBanner() {
     }
 
     const hasErrors = document.querySelector('.public-field-card--error');
-    banner.hidden = !hasErrors;
+    banner.style.display = hasErrors ? '' : 'none';
 }
 
 function checkCard(card) {
@@ -61,16 +61,27 @@ export function initPublicFormValidation() {
     }
 
     form.addEventListener('input', (event) => {
-        const card = event.target.closest('.public-field-card--error');
-        if (card) {
+        const card = event.target.closest('.public-field-card');
+        if (card?.classList.contains('public-field-card--error')) {
             checkCard(card);
         }
     });
 
     form.addEventListener('change', (event) => {
-        const card = event.target.closest('.public-field-card--error');
-        if (card) {
+        const card = event.target.closest('.public-field-card');
+        if (card?.classList.contains('public-field-card--error')) {
             checkCard(card);
+        }
+    });
+
+    form.addEventListener('click', (event) => {
+        const choice = event.target.closest('.public-choice');
+        if (!choice) {
+            return;
+        }
+        const card = choice.closest('.public-field-card');
+        if (card?.classList.contains('public-field-card--error')) {
+            requestAnimationFrame(() => checkCard(card));
         }
     });
 }

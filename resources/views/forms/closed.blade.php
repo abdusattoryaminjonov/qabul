@@ -3,7 +3,7 @@
 @section('title', __('app.public.form_closed'))
 
 @push('head')
-<style>:root { --form-theme: {{ $form->theme_color }}; }</style>
+<style>:root { --form-theme: #2dd4bf; }</style>
 @endpush
 
 @section('body')

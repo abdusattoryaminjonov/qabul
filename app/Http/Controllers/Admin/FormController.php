@@ -180,6 +180,27 @@ class FormController extends Controller
         return back()->with('success', __('app.forms.updated'));
     }
 
+    public function toggleStatus(Request $request, Form $form)
+    {
+        $this->authorize('update', $form);
+
+        $enabled = $request->boolean('active');
+
+        $form->update([
+            'is_active' => $enabled,
+            'accept_responses' => $enabled,
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'active' => $enabled,
+                'label' => $enabled ? __('app.common.active') : __('app.common.closed'),
+            ]);
+        }
+
+        return back()->with('success', $enabled ? __('app.forms.activated') : __('app.forms.deactivated'));
+    }
+
     public function generateShortLink(Form $form)
     {
         $this->authorize('update', $form);
